@@ -1,0 +1,79 @@
+﻿@{
+    Layout = "_Layout";   // আপনার লেআউট ফাইল অনুযায়ী বদলান
+    ViewData["Title"] = "Retrenchment Dashboard";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>Retrenchment</h3>
+        <div>
+            <a asp-controller="Retrenchment" asp-action="Upload" class="btn btn-outline-primary me-2">Upload Excel</a>
+            <a asp-controller="Report" asp-action="ViewReport" class="btn btn-outline-secondary me-2">Report</a>
+            <button id="btnProcess" class="btn btn-success">Process</button>
+        </div>
+    </div>
+
+    <div id="statusArea" class="mt-3"></div>
+
+    <hr />
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Quick Actions</h5>
+            <p class="card-text">আপনি Upload করে থাকলে এখন Process বাটন চাপলে `sp_RetrenchmentProcess` রান করবে এবং `tblRetrenchmentEncashment` আপডেট/ইনসার্ট হবে।</p>
+
+            <div class="mb-2">
+                <small class="text-muted">Tip: প্রথমে Upload করে নিশ্চিত করুন ডেটা সঠিকভাবে ঢুকেছে।</small>
+            </div>
+
+            <div id="processResult"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('btnProcess').addEventListener('click', async function () {
+            if (!confirm('আপনি কি নিশ্চিত যে Process চালাতে চান? এটা সমস্ত আপলোড করা রেকর্ডের জন্য encashment তৈরি করবে।')) return;
+
+            const btn = document.getElementById('btnProcess');
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const headers = {};
+                let body;
+                if (tokenInput) {
+                    // send form-encoded body with token so antiforgery validation works (if enabled)
+                    body = new URLSearchParams();
+                    body.append('__RequestVerificationToken', tokenInput.value);
+                }
+
+                const res = await fetch('@Url.Action("ProcessRetrenchments", "Retrenchment")', {
+                    method: 'POST',
+                    headers: headers,
+                    body: body
+                });
+
+                const json = await res.json();
+                if (res.ok && json.success) {
+                    showStatus('Process completed successfully.', true);
+                } else {
+                    showStatus('Processing failed: ' + (json?.message ?? json?.error ?? 'Unknown error'), false);
+                }
+            } catch (err) {
+                showStatus('Error: ' + err.message, false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        function showStatus(message, ok) {
+            const div = document.getElementById('statusArea');
+            div.innerHTML = `<div class="alert ${ok ? 'alert-success' : 'alert-danger'}">${message}</div>`;
+        }
+    </script>
+}

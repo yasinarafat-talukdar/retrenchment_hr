@@ -1,0 +1,275 @@
+﻿@{
+    Layout = "_Layout";   // আপনার লেআউট ফাইল অনুযায়ী বদলান
+    ViewData["Title"] = "Upload Retrenchment Excel";
+}
+
+<div class="container py-4">
+    <h3>Retrenchment - Excel Upload</h3>
+    <p class="text-muted">এক্সেল টেমপ্লেট: <a href="~/templates/RetrenchmentTemplate.xlsx" download>Download Sample Template</a></p>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <form id="uploadForm" method="post" enctype="multipart/form-data" asp-controller="Retrenchment" asp-action="UploadData">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label for="file" class="form-label">Choose Excel file (.xlsx)</label>
+                    <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required />
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="btnUpload">
+                        <span id="btnUploadText">Upload</span>
+                        <span id="btnUploadSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+
+                    <a asp-controller="Retrenchment" asp-action="Index" class="btn btn-secondary">Back</a>
+                </div>
+            </form>
+
+            <div id="uploadResult" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+@* @section Scripts { *@
+@*     <script> *@
+@*         document.getElementById('uploadForm').addEventListener('submit', async function (e) { *@
+@*             e.preventDefault(); *@
+
+@*             const fileInput = document.getElementById('file'); *@
+@*             if (!fileInput.files.length) { *@
+@*                 showResult('Please choose a file to upload', false); *@
+@*                 return; *@
+@*             } *@
+
+@*             const btn = document.getElementById('btnUpload'); *@
+@*             const spinner = document.getElementById('btnUploadSpinner'); *@
+@*             const text = document.getElementById('btnUploadText'); *@
+
+@*             btn.disabled = true; *@
+@*             spinner.classList.remove('d-none'); *@
+@*             text.textContent = 'Uploading...'; *@
+
+@*             const formData = new FormData(); *@
+@*             formData.append('file', fileInput.files[0]); *@
+
+@*             // include the antiforgery token *@
+@*             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]'); *@
+@*             if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value); *@
+
+@*             try { *@
+@*                 const res = await fetch('@Url.Action("UploadData", "Retrenchment")', { *@
+@*                     method: 'POST', *@
+@*                     body: formData *@
+@*                 }); *@
+@*                 const json = await res.json(); *@
+@*                 if (res.ok && json.success) { *@
+@*                     showResult(`${json.message} Rows: ${json.rows ?? '-'}`, true); *@
+@*                 } else { *@
+@*                     const msg = json?.message ?? (json?.error ?? 'Upload failed'); *@
+@*                     showResult(msg, false); *@
+@*                 } *@
+@*             } catch (err) { *@
+@*                 showResult('Error: ' + err.message, false); *@
+@*             } finally { *@
+@*                 btn.disabled = false; *@
+@*                 spinner.classList.add('d-none'); *@
+@*                 text.textContent = 'Upload'; *@
+@*             } *@
+@*         }); *@
+
+@*         function showResult(message, ok) { *@
+@*             const div = document.getElementById('uploadResult'); *@
+@*             div.innerHTML = `<div class="alert ${ok ? 'alert-success' : 'alert-danger'}">${message}</div>`; *@
+@*         } *@
+@*     </script> *@
+@* } *@
+
+
+
+
+@* @section Scripts { *@
+@*     <style> *@
+@*         /* Fade-in/out animation for alerts */ *@
+@*         .alert-fade { *@
+@*             opacity: 0; *@
+@*             transform: translateY(-20px); *@
+@*             transition: opacity 0.5s ease, transform 0.5s ease; *@
+@*         } *@
+
+@*             .alert-fade.show { *@
+@*                 opacity: 1; *@
+@*                 transform: translateY(0); *@
+@*             } *@
+@*     </style> *@
+
+@*     <script> *@
+@*         document.getElementById('uploadForm').addEventListener('submit', async function (e) { *@
+@*             e.preventDefault(); *@
+
+@*             const fileInput = document.getElementById('file'); *@
+@*             if (!fileInput.files.length) { *@
+@*                 showResult('Please choose a file to upload', false); *@
+@*                 return; *@
+@*             } *@
+
+@*             const btn = document.getElementById('btnUpload'); *@
+@*             const spinner = document.getElementById('btnUploadSpinner'); *@
+@*             const text = document.getElementById('btnUploadText'); *@
+
+@*             btn.disabled = true; *@
+@*             spinner.classList.remove('d-none'); *@
+@*             text.textContent = 'Uploading...'; *@
+
+@*             const formData = new FormData(); *@
+@*             formData.append('file', fileInput.files[0]); *@
+
+@*             // include the antiforgery token *@
+@*             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]'); *@
+@*             if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value); *@
+
+@*             try { *@
+@*                 const res = await fetch('@Url.Action("UploadData", "Retrenchment")', { *@
+@*                     method: 'POST', *@
+@*                     body: formData *@
+@*                 }); *@
+
+@*                 const json = await res.json(); *@
+
+@*                 if (res.ok && json.success) { *@
+@*                     showResult(`${json.message} Rows: ${json.rows ?? '-'}`, true); *@
+@*                 } else { *@
+@*                     const msg = json?.message ?? (json?.error ?? 'Upload failed'); *@
+@*                     showResult(msg, false); *@
+@*                 } *@
+@*             } catch (err) { *@
+@*                 showResult('Error: ' + err.message, false); *@
+@*             } finally { *@
+@*                 btn.disabled = false; *@
+@*                 spinner.classList.add('d-none'); *@
+@*                 text.textContent = 'Upload'; *@
+@*             } *@
+@*         }); *@
+
+@*         function showResult(message, ok) { *@
+@*             const div = document.getElementById('uploadResult'); *@
+@*             div.innerHTML = ''; // clear previous alerts *@
+
+@*             // create alert div *@
+@*             const alertDiv = document.createElement('div'); *@
+@*             alertDiv.className = `alert ${ok ? 'alert-success' : 'alert-danger'} alert-fade`; *@
+@*             alertDiv.textContent = message; *@
+
+@*             div.appendChild(alertDiv); *@
+
+@*             // trigger animation *@
+@*             setTimeout(() => alertDiv.classList.add('show'), 50); *@
+
+@*             // auto-hide after 4 seconds *@
+@*             setTimeout(() => { *@
+@*                 alertDiv.classList.remove('show'); *@
+@*                 // remove from DOM after fade-out *@
+@*                 setTimeout(() => alertDiv.remove(), 500); *@
+@*             }, 4000); *@
+@*         } *@
+@*     </script> *@
+@* } *@
+
+
+
+
+@section Scripts {
+    <style>
+        /* Toast container top-right */
+        #toastContainer {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1080;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+    </style>
+
+    <div id="toastContainer"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('file');
+            if (!fileInput.files.length) {
+                showToast('Please choose a file to upload', false);
+                return;
+            }
+
+            const btn = document.getElementById('btnUpload');
+            const spinner = document.getElementById('btnUploadSpinner');
+            const text = document.getElementById('btnUploadText');
+
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+            text.textContent = 'Uploading...';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+            try {
+                const res = await fetch('@Url.Action("UploadData", "Retrenchment")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const json = await res.json();
+
+                if (res.ok && json.success) {
+                    showToast(`${json.message} Rows: ${json.rows ?? '-'}`, true);
+                } else {
+                    const msg = json?.message ?? (json?.error ?? 'Upload failed');
+                    showToast(msg, false);
+                }
+            } catch (err) {
+                showToast('Error: ' + err.message, false);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+                text.textContent = 'Upload';
+            }
+        });
+
+        function showToast(message, success = true) {
+            const container = document.getElementById('toastContainer');
+
+            const toastDiv = document.createElement('div');
+            toastDiv.className = `toast align-items-center text-white ${success ? 'bg-success' : 'bg-danger'} border-0`;
+            toastDiv.setAttribute('role', 'alert');
+            toastDiv.setAttribute('aria-live', 'assertive');
+            toastDiv.setAttribute('aria-atomic', 'true');
+
+            toastDiv.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+
+            container.appendChild(toastDiv);
+
+            // Initialize and show Bootstrap toast
+            const toast = new bootstrap.Toast(toastDiv, { delay: 4000 });
+            toast.show();
+
+            // Remove from DOM after hidden
+            toastDiv.addEventListener('hidden.bs.toast', () => toastDiv.remove());
+        }
+    </script>
+}

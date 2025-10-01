@@ -1,0 +1,140 @@
+﻿@{
+    Layout = "_Layout";   // আপনার প্রজেক্ট অনুযায়ী বদলান
+    ViewData["Title"] = "View Retrenchment Report";
+}
+
+<div class="container py-4">
+    <h3>Retrenchment Report</h3>
+    <p class="text-muted">রিপোর্ট জেনারেট করতে নিচের ফিল্টার ব্যবহার করুন — আপনি চাইলে শুধু সবগুলো রেকর্ডের রিপোর্টও নিতে পারেন।</p>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form id="reportForm" method="post" asp-controller="Report" asp-action="GenerateReport" target="_blank">
+                @Html.AntiForgeryToken()
+
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label for="RetrenchmentId" class="form-label">Retrenchment ID (Optional)</label>
+                        <input type="number" class="form-control" id="RetrenchmentId" name="RetrenchmentId" min="1" placeholder="e.g. 123" />
+                        <div class="form-text">কোনো নির্দিষ্ট রেকর্ডের রিপোর্ট পেতে ID দিন, না হলে সবার রিপোর্ট পাবে।</div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="SectId" class="form-label">Section (Optional)</label>
+                        <select id="SectId" name="SectId" class="form-select">
+                            <option value="">-- Select Section --</option>
+                            <!-- এখানে আপনার সার্ভার থেকে পাওয়া সেকশনগুলো গুলো render করবেন যদি প্রয়োজন -->
+                            <option value="1">OFFICE</option>
+                            <option value="2">HR</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="DesigId" class="form-label">Designation (Optional)</label>
+                        <select id="DesigId" name="DesigId" class="form-select">
+                            <option value="">-- Select Designation --</option>
+                            <!-- প্রয়োজন অনুযায়ী populate করুন -->
+                            <option value="1">Operator</option>
+                            <option value="2">Supervisor</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Report Format</label>
+                        <div class="d-flex gap-2">
+                            <input type="hidden" id="reportType" name="reportType" value="PDF" />
+                            <button type="button" id="btnPdf" class="btn btn-primary">Download PDF</button>
+                            <button type="button" id="btnExcel" class="btn btn-outline-secondary">Download Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="mt-3">
+                <small class="text-muted">Tip: যদি রিপোর্ট বড় হয়, PDF টাইম লাগতে পারে — ধৈর্য ধরুন।</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Report Preview (Optional)</h5>
+            <p class="text-muted">আপনি চাইলে ডিফল্টভাবে রিপোর্ট নতুন ট্যাবে খুলে দেখতে পারেন। নিচের ভিউ-এর মাধ্যমে সার্ভার সাইডে PDF রেন্ডার করে একটি inline iframe-এ দেখানো যাবে — কিন্তু বড় রিপোর্টের জন্য এটি heavy হতে পারে।</p>
+
+            <div class="mb-2">
+                <button id="btnPreview" class="btn btn-outline-success">Preview in Page</button>
+                <button id="btnClearPreview" class="btn btn-outline-danger">Clear Preview</button>
+            </div>
+
+            <div id="previewArea" class="mt-3">
+                <!-- iframe এখানে preview হবে -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Submit form to download PDF/Excel in new tab
+        document.getElementById('btnPdf').addEventListener('click', function () {
+            document.getElementById('reportType').value = 'PDF';
+            // open in new tab by submitting form with target="_blank"
+            document.getElementById('reportForm').submit();
+        });
+
+        document.getElementById('btnExcel').addEventListener('click', function () {
+            document.getElementById('reportType').value = 'EXCEL';
+            document.getElementById('reportForm').submit();
+        });
+
+        // Optional: Preview in iframe (POST fetch and create blob URL)
+        document.getElementById('btnPreview').addEventListener('click', async function () {
+            // gather form data
+            const form = document.getElementById('reportForm');
+            const formData = new FormData(form);
+
+            // set preview report type to PDF
+            formData.set('reportType', 'PDF');
+
+            // show spinner
+            const previewArea = document.getElementById('previewArea');
+            previewArea.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><div class="small text-muted mt-2">Rendering report...</div></div>';
+
+            try {
+                // fetch the report as blob
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin' // include cookies/antiforgery
+                });
+
+                if (!response.ok) {
+                    const txt = await response.text();
+                    previewArea.innerHTML = `<div class="alert alert-danger">Preview failed: ${response.status} ${response.statusText} <br/> ${txt}</div>`;
+                    return;
+                }
+
+                const contentType = response.headers.get('content-type');
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                // embed as iframe for PDF; for excel we can provide download link
+                if (contentType && contentType.indexOf('pdf') !== -1) {
+                    previewArea.innerHTML = `<iframe src="${blobUrl}" style="width:100%;height:800px;border:1px solid #ddd;"></iframe>`;
+                } else {
+                    // for non-pdf (e.g., excel) provide download link
+                    const fileName = 'RetrenchmentReport';
+                    const ext = contentType && contentType.indexOf('excel') !== -1 ? '.xlsx' : '';
+                    previewArea.innerHTML = `<a href="${blobUrl}" class="btn btn-primary" download="${fileName + ext}">Download Report</a>`;
+                }
+
+            } catch (err) {
+                previewArea.innerHTML = `<div class="alert alert-danger">Error rendering preview: ${err.message}</div>`;
+            }
+        });
+
+        document.getElementById('btnClearPreview').addEventListener('click', function () {
+            document.getElementById('previewArea').innerHTML = '';
+        });
+    </script>
+}

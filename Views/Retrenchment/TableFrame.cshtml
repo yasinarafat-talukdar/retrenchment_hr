@@ -1,0 +1,115 @@
+﻿@model IEnumerable<RetrenchmentSystemManagement.Models.RetrenchmentEncashmentViewModel>
+
+@* No layout so iframe shows only the table content *@
+@{
+    Layout = null;
+}
+
+
+<div class="p-3">
+    <table id="retTableFrame" class="display nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th>Emp Code</th>
+                <th>Emp Name</th>
+                <th>Designation</th>
+                <th>Section</th>
+                <th>Join Date</th>
+                <th>Released</th>
+                <th>Gross</th>
+                <th>Basic</th>
+                <th>PresentDays</th>
+                <th>LastMonthSalary</th>
+                <th>LastMonthSalary2</th>
+                <th>ELAmount</th>
+                <th>NoticeAmount</th>
+                <th>Benefit</th>
+                <th>TotalPayable</th>
+                <th>BankAcNo</th>
+            </tr>
+            <tr id="filterRow">
+                @* empty filter row (will be replaced by inputs via JS) *@
+                <th><input type="text" class="col-filter form-control form-control-sm" placeholder="Search code" /></th>
+                <th><input type="text" class="col-filter form-control form-control-sm" placeholder="Search name" /></th>
+                <th><input type="text" class="col-filter form-control form-control-sm" placeholder="Designation" /></th>
+                <th><input type="text" class="col-filter form-control form-control-sm" placeholder="Section" /></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var it in Model ?? Enumerable.Empty<RetrenchmentSystemManagement.Models.RetrenchmentEncashmentViewModel>())
+            {
+                <tr>
+                    <td>@it.EmpCode</td>
+                    <td>@it.EmpName</td>
+                    <td>@it.Designation</td>
+                    <td>@it.Section</td>
+                    <td>@it.dtJoin.ToString("yyyy-MM-dd")</td>
+                    <td>@(it.dtReleased.HasValue ? it.dtReleased.Value.ToString("yyyy-MM-dd") : "")</td>
+                    <td>@it.Gross.ToString("N2")</td>
+                    <td>@it.Basic.ToString("N2")</td>
+                    <td>@it.PresentDays</td>
+                    <td>@(it.LastMonthSalary.ToString("N2") ?? "-")</td>
+                    <td>@(it.LastMonthSalary2.ToString("N2") ?? "-")</td>
+                    <td>@(it.ELAmount.ToString("N2") ?? "-")</td>
+                    <td>@(it.NoticePeriodAmount.ToString("N2") ?? "-")</td>
+                    <td>@(it.RetrenchmentBenefitAmount.ToString("N2") ?? "-")</td>
+                    <td>@(it.TotalPayableAmount.ToString("N2") ?? "-")</td>
+                    <td>@it.BankAcNo</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+<script>
+    $(function () {
+        var table = $('#retTableFrame').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'copy', className: 'btn btn-sm btn-outline-secondary' },
+                { extend: 'csv', className: 'btn btn-sm btn-outline-secondary' },
+                { extend: 'excel', className: 'btn btn-sm btn-outline-secondary' },
+                { extend: 'pdf', className: 'btn btn-sm btn-outline-secondary' },
+                { extend: 'print', className: 'btn btn-sm btn-outline-secondary' }
+            ],
+            responsive: true,
+            pageLength: 25,
+            orderCellsTop: true,
+            fixedHeader: false
+        });
+
+        // Apply per-column filtering (text inputs in the second header row)
+        $('#retTableFrame thead tr#filterRow th').each(function (i) {
+            var input = $(this).find('input');
+            if (input.length) {
+                $(input).on('keyup change clear', function () {
+                    if (table.column(i).search() !== this.value) {
+                        table.column(i).search(this.value).draw();
+                    }
+                });
+            }
+        });
+    });
+</script>
